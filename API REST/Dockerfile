@@ -1,13 +1,31 @@
-# Etapa 1: Build con Maven
-FROM maven:3.9.6-eclipse-temurin-17 AS build
-WORKDIR /app
-COPY pom.xml .
-COPY src ./src
+# ---------- ETAPA 1: BUILD ----------
+FROM maven:3.8.8-openjdk-17 AS compilacion
+
+WORKDIR /proyecto
+
+# Copiar todo el proyecto
+COPY . .
+
+# Compilar sin tests
 RUN mvn clean package -DskipTests
 
-# Etapa 2: Imagen final liviana
-FROM eclipse-temurin:17-jre-alpine
-WORKDIR /app
-COPY --from=build /app/target/vacaciones-0.0.1-SNAPSHOT.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# ---------- ETAPA 2: SERVIDOR ----------
+FROM openjdk:17-jdk-slim
+
+WORKDIR /deploy
+
+# Copiar el archivo generado
+COPY --from=compilacion /proyecto/target/*.jar vacaciones-app.jar
+
+# Crear carpeta logs
+RUN mkdir logs
+
+# Puerto diferente
+EXPOSE 9090
+
+# Configuración zona horaria
+ENV TZ=America/Guayaquil
+
+# Comando de ejecución con perfil activo
+CMD ["java", "-jar", "vacaciones-app.jar", "--spring.profiles.active=prod"]
