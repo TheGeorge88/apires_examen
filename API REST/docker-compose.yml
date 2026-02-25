@@ -1,34 +1,41 @@
+version: "3.8"
+
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: mysql_vacaciones
+
+  mysql_db:
+    image: mysql:8.0.36
+    container_name: vacaciones_mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: vacaciones_db
+      MYSQL_ROOT_PASSWORD: admin123
+      MYSQL_DATABASE: sistema_vacaciones
+      MYSQL_USER: vacaciones_user
+      MYSQL_PASSWORD: vacaciones_pass
     ports:
-      - "3307:3306"
+      - "3308:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - vacaciones_mysql_data:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
 
-  app:
-    build: .
-    container_name: api_vacaciones
-    restart: on-failure
+  api:
+    image: openjdk:17-jdk-slim
+    container_name: vacaciones_api
+    restart: always
+    working_dir: /app
+    volumes:
+      - ./target/app.jar:/app/app.jar
+    command: ["java", "-jar", "app.jar"]
     ports:
-      - "8080:8080"
+      - "8090:8080"
     depends_on:
-      mysql:
-        condition: service_healthy
+      - mysql_db
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/vacaciones_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root123
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql_db:3306/sistema_vacaciones
+      SPRING_DATASOURCE_USERNAME: vacaciones_user
+      SPRING_DATASOURCE_PASSWORD: vacaciones_pass
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
 
 volumes:
-  mysql_data:
+  vacaciones_mysql_data:
