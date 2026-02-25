@@ -1,32 +1,45 @@
 package com.examen.vacaciones.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "vacaciones")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Table(name = "tb_vacacion")
+@Getter
+@Setter
 public class Vacacion {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "nombre_empleado", nullable = false, length = 150)
-    private String nombreEmpleado;
+    @NotBlank
+    @Size(max = 150)
+    @Column(nullable = false)
+    private String empleado;
 
-    @Column(name = "fecha_inicio", nullable = false)
-    private LocalDate fechaInicio;
+    @NotNull
+    @Column(name = "inicio_vacaciones", nullable = false)
+    private LocalDate inicioVacaciones;
 
-    @Column(name = "fecha_fin", nullable = false)
-    private LocalDate fechaFin;
+    @NotNull
+    @Column(name = "fin_vacaciones", nullable = false)
+    private LocalDate finVacaciones;
 
-    @Column(name = "estado", nullable = false, length = 1)
-    private String estado;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private EstadoVacacion estado;
+
+    // Enum interno para el estado
+    public enum EstadoVacacion {
+        PENDIENTE,
+        APROBADA,
+        RECHAZADA
+    }
 }
